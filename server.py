@@ -5,6 +5,9 @@ import tornado.ioloop
 import tornado.web
 import urllib
 import Image
+import os
+import sys
+import base64
 
 class WSHandler(tornado.websocket.WebSocketHandler):
     clients = []
@@ -20,8 +23,13 @@ class WSHandler(tornado.websocket.WebSocketHandler):
     def on_message(self, message):
         print 'message received %s' % message
         save_image(message)
-
-        #self.write_message(message)
+        # Run our model.
+        os.system('/home/ciplab/HEPC/py-faster-rcnn/tools/HEPC_app.py')
+        # Read the output.
+        with open('/home/ciplab/PycharmProjects/server/images/json.txt',"rb") as output:
+            json_output=output.read()
+        # Send to web.
+        self.write_message(json_output)
 
     def on_close(self):
         print 'connection closed'
@@ -35,9 +43,9 @@ class WSHandler(tornado.websocket.WebSocketHandler):
 
 # Get the image from url and save the image to the demo directory.
 def save_image(url):
-    urllib.urlretrieve(url, "/home/ciplab/HEPC/py-faster-rcnn/demo/input.jpg")
-    img = Image.open("/home/ciplab/HEPC/py-faster-rcnn/demo/input.jpg")
-    img.save("/home/ciplab/HEPC/py-faster-rcnn/demo/input.jpg", "JPEG")
+    urllib.urlretrieve(url, "/home/ciplab/HEPC/py-faster-rcnn/data/demo/input.jpg")
+    img = Image.open("/home/ciplab/HEPC/py-faster-rcnn/data/demo/input.jpg")
+    img.save("/home/ciplab/HEPC/py-faster-rcnn/data/demo/input.jpg", "JPEG")
 
 application = tornado.web.Application([
   (r'/ws', WSHandler),
